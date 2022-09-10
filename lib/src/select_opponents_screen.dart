@@ -188,7 +188,7 @@ class _BodyLayoutState extends State<BodyLayout> {
     _selectedUsers = {};
 
     checkSystemAlertWindowPermission(context);
-
+    CallManager().init(context);
     PushNotificationsManager.instance.init();
   }
 }

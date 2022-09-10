@@ -68,6 +68,7 @@ class CallManager {
     }
 
     _callClient!.onReceiveNewSession = (callSession) async {
+      print("////////// new session: ${callSession.callerId} ");
       if (_currentCall != null &&
           _currentCall!.sessionId != callSession.sessionId) {
         callSession.reject();
@@ -75,19 +76,21 @@ class CallManager {
       }
       _currentCall = callSession;
 
-      var callState = await _getCallState(_currentCall!.sessionId);
+      _showIncomingCallScreen(callSession);
+      //acceptCall(_currentCall!.sessionId);
+      //var callState = await _getCallState(_currentCall!.sessionId);
 
-      if (callState == CallState.REJECTED) {
-        reject(_currentCall!.sessionId);
-      } else if (callState == CallState.ACCEPTED) {
-        acceptCall(_currentCall!.sessionId);
-      } else if (callState == CallState.UNKNOWN) {
-        // ConnectycubeFlutterCallKit.setCallState(sessionId: _currentCall.sessionId, callState: CallState.PENDING);
-        // _showIncomingCallScreen(_currentCall);
-        if (Platform.isWindows || Platform.isMacOS || kIsWeb) {
-          _showIncomingCallScreen(_currentCall!);
-        }
-      }
+      // if (callState == CallState.REJECTED) {
+      //   reject(_currentCall!.sessionId);
+      // } else if (callState == CallState.ACCEPTED) {
+      //   acceptCall(_currentCall!.sessionId);
+      // } else if (callState == CallState.UNKNOWN) {
+      //   // ConnectycubeFlutterCallKit.setCallState(sessionId: _currentCall.sessionId, callState: CallState.PENDING);
+      //   // _showIncomingCallScreen(_currentCall);
+      //   if (Platform.isWindows || Platform.isMacOS || kIsWeb) {
+      //     _showIncomingCallScreen(_currentCall!);
+      //   }
+      // }
     };
 
     _callClient!.onSessionClosed = (callSession) {

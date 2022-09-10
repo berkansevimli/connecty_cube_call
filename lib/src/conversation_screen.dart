@@ -34,8 +34,6 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
   RTCVideoRenderer? localRenderer;
   Map<int?, RTCVideoRenderer> remoteRenderers = {};
 
-  bool _enableScreenSharing;
-
   MediaStream? _localMediaStream;
 
   bool _isSafari = false;
@@ -46,8 +44,7 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
 
   bool _customMediaStream = false;
 
-  _ConversationCallScreenState(this._callSession, this._isIncoming)
-      : _enableScreenSharing = !_callSession.startScreenSharing;
+  _ConversationCallScreenState(this._callSession, this._isIncoming);
 
   @override
   void initState() {
@@ -104,11 +101,8 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
       if (!_customMediaStream) {
         _customMediaStream = true;
 
-        var customMediaStream = _enableScreenSharing
-            ? await navigator.mediaDevices
-                .getUserMedia({'audio': true, 'video': _isVideoCall()})
-            : await navigator.mediaDevices
-                .getDisplayMedia({'audio': true, 'video': true});
+        var customMediaStream = await navigator.mediaDevices
+            .getDisplayMedia({'audio': true, 'video': true});
 
         _callSession.replaceMediaStream(customMediaStream);
         setState(() {
@@ -395,7 +389,7 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
                 padding: EdgeInsets.only(right: 4),
                 child: FloatingActionButton(
                   elevation: 0,
-                  heroTag: "Speacker",
+                  heroTag: "Speaker",
                   child: Icon(
                     Icons.volume_up,
                     color: _isSpeakerEnabled ? Colors.white : Colors.grey,
@@ -406,21 +400,6 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
               ),
               Visibility(
                 visible: _isVideoCall(),
-                child: FloatingActionButton(
-                  elevation: 0,
-                  heroTag: "ToggleScreenSharing",
-                  child: Icon(
-                    _enableScreenSharing
-                        ? Icons.screen_share
-                        : Icons.stop_screen_share,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => _toggleScreenSharing(),
-                  backgroundColor: Colors.black38,
-                ),
-              ),
-              Visibility(
-                visible: _isVideoCall() && _enableScreenSharing,
                 child: Padding(
                   padding: EdgeInsets.only(right: 4),
                   child: FloatingActionButton(
@@ -436,7 +415,7 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
                 ),
               ),
               Visibility(
-                visible: _isVideoCall() && _enableScreenSharing,
+                visible: _isVideoCall(),
                 child: Padding(
                   padding: EdgeInsets.only(right: 4),
                   child: FloatingActionButton(
@@ -500,39 +479,6 @@ class _ConversationCallScreenState extends State<ConversationCallScreen>
     setState(() {
       _isCameraEnabled = !_isCameraEnabled;
       _callSession.setVideoEnabled(_isCameraEnabled);
-    });
-  }
-
-  _toggleScreenSharing() async {
-    if (!_isVideoCall()) return;
-
-    var foregroundServiceFuture = _enableScreenSharing
-        ? startBackgroundExecution()
-        : stopBackgroundExecution();
-
-    var hasPermissions = await hasBackgroundExecutionPermissions();
-
-    if (!hasPermissions) {
-      await initForegroundService();
-    }
-
-    var desktopCapturerSource = _enableScreenSharing && isDesktop
-        ? await showDialog<DesktopCapturerSource>(
-            context: context,
-            builder: (context) => ScreenSelectDialog(),
-          )
-        : null;
-
-    foregroundServiceFuture.then((_) {
-      _callSession
-          .enableScreenSharing(_enableScreenSharing,
-              desktopCapturerSource: desktopCapturerSource,
-              useIOSBroadcasting: true)
-          .then((voidResult) {
-        setState(() {
-          _enableScreenSharing = !_enableScreenSharing;
-        });
-      });
     });
   }
 
